@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Camera</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+    body, html { width: 100%; height: 100%; background: #000; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; overflow: hidden; color: #fff; }
+    .top-bar { position: absolute; top: 0; left: 0; right: 0; height: 50px; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; z-index: 10; cursor: pointer; }
+    .time { font-weight: 600; font-size: 15px; }
+    .viewport { position: absolute; top: 50px; left: 0; right: 0; bottom: 160px; border-radius: 40px; overflow: hidden; background: #111; display: flex; align-items: center; justify-content: center; }
+    video { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease; }
+    .controls { position: absolute; bottom: 0; left: 0; right: 0; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding-bottom: 20px; background: #000; z-index: 10; }
+    .zoom-picker { display: flex; gap: 15px; }
+    .zoom-btn { width: 32px; height: 32px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); border: none; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .zoom-btn.active { background: #000; color: #ffcc00; border: 1px solid #ffcc00; }
+    .modes { display: flex; gap: 20px; font-size: 13px; font-weight: 600; color: #aaa; text-transform: uppercase; }
+    .modes .active { color: #ffcc00; }
+    .shutter-row { width: 100%; display: flex; justify-content: space-around; align-items: center; }
+    .gallery-preview { width: 45px; height: 45px; border-radius: 8px; background: #333; background-size: cover; border: 2px solid #fff; }
+    .shutter-btn { width: 70px; height: 70px; border-radius: 50%; border: 4px solid #fff; background: transparent; padding: 3px; }
+    .shutter-inner { width: 100%; height: 100%; border-radius: 50%; background: #fff; }
+    .flip-btn { width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    #videoInput { display: none; }
+  </style>
+</head>
+<body>
+  <div class="top-bar" id="editTrigger"><span class="time" id="clock">12:00</span></div>
+  <div class="viewport"><video id="videoFeed" autoplay loop muted playsinline></video></div>
+  <div class="controls">
+    <div class="zoom-picker">
+      <button class="zoom-btn" onclick="setZoom(0.5, this)">0.5</button>
+      <button class="zoom-btn active" onclick="setZoom(1, this)">1x</button>
+      <button class="zoom-btn" onclick="setZoom(2, this)">2</button>
+    </div>
+    <div class="modes"><span>PHOTO</span><span class="active">VIDEO</span><span>SLO-MO</span></div>
+    <div class="shutter-row">
+      <div class="gallery-preview" id="galleryBtn" onclick="triggerUpload()"></div>
+      <div class="shutter-btn"><div class="shutter-inner"></div></div>
+      <div class="flip-btn">↻</div>
+    </div>
+  </div>
+  <input type="file" id="videoInput" accept="video/*">
+  <script>
+    const video = document.getElementById('videoFeed');
+    const input = document.getElementById('videoInput');
+    const galleryBtn = document.getElementById('galleryBtn');
+    let timer;
+    const trigger = document.getElementById('editTrigger');
+    trigger.addEventListener('touchstart', () => timer = setTimeout(triggerUpload, 1000));
+    trigger.addEventListener('touchend', () => clearTimeout(timer));
+    function triggerUpload() { input.click(); }
+    input.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        video.src = url;
+        video.play();
+        galleryBtn.style.backgroundImage = `url(${url})`;
+      }
+    });
+    function setZoom(factor, btn) {
+      document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      video.style.transform = `scale(${factor})`;
+    }
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+</body>
+</html>
